@@ -1,8 +1,8 @@
 export default function handler(req, res) {
   const { pattern } = req.query;
 
-  // Match the pattern xdy+z (e.g., 2d6+3 or d20)
-  const match = pattern.match(/^(\d*)d(\d+)(\+(\d+))?$/); // optional +z part
+  // Match the pattern xdy+z where z can be a float, followed by any tail (e.g., _aaaaa)
+  const match = pattern.match(/^(\d*)d(\d+)(\+(\d*\.?\d+))?.*/); // optional +z part, allow any tail
 
   if (!match) {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate"); // Disable caching for invalid input
@@ -50,7 +50,7 @@ export default function handler(req, res) {
   // Extract x, y, and z from the regex match
   const x = match[1] ? parseInt(match[1], 10) : 1;  // Default to 1 if x is not provided
   const y = parseInt(match[2], 10);  // y is always required
-  const z = match[4] ? parseInt(match[4], 10) : 0;  // Default to 0 if z is not provided
+  const z = match[4] ? parseFloat(match[4]) : 0;  // Default to 0 if z is not provided, ensure it's a float
 
   // Generate random dice rolls
   const rolls = Array.from({ length: x }, () => Math.floor(Math.random() * y) + 1);
@@ -60,7 +60,7 @@ export default function handler(req, res) {
 
   // Create a descriptive title and description
   const title = `Rolling ${x}d${y}${z !== 0 ? `+${z}` : ''}`;
-  const description = `Result: ${sum} (Rolls: [${rolls.join(", ")}] + ${z})`;
+  const description = `🎲: ${sum} (Rolls: [${rolls.join(", ")}] + ${z})`;
 
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate"); // Disable caching for this response
   res.setHeader("Content-Type", "text/html");
