@@ -2,12 +2,10 @@ export default function handler(req, res) {
   const { pattern } = req.query;
 
   // Match the pattern xdy+z (e.g., 2d6+3 or d20)
-  const match = pattern.match(/^(\d*)d(\d+)(\+(\d+))?$/);
+  const match = pattern.match(/^(\d*)d(\d+)(\+(\d+))?$/); // optional +z part
 
   if (!match) {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
-    res.setHeader("Expires", "-1");
-    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate"); // Disable caching for invalid input
     res.setHeader("Content-Type", "text/html");
     res.status(400).send(`
       <!DOCTYPE html>
@@ -15,9 +13,6 @@ export default function handler(req, res) {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-          <meta http-equiv="Pragma" content="no-cache">
-          <meta http-equiv="Expires" content="0">
           <meta property="og:title" content="Dice Roll Error">
           <meta property="og:description" content="Invalid dice roll format">
           <meta name="twitter:card" content="summary">
@@ -53,18 +48,12 @@ export default function handler(req, res) {
   }
 
   // Extract x, y, and z from the regex match
-  const x = match[1] ? parseInt(match[1], 10) : 1;
-  const y = parseInt(match[2], 10);
-  const z = match[4] ? parseInt(match[4], 10) : 0;
+  const x = match[1] ? parseInt(match[1], 10) : 1;  // Default to 1 if x is not provided
+  const y = parseInt(match[2], 10);  // y is always required
+  const z = match[4] ? parseInt(match[4], 10) : 0;  // Default to 0 if z is not provided
 
-  // Get current second for random seed
-  const currentSecond = new Date().getSeconds();
-  
-  // Generate random dice rolls using current second
-  const rolls = Array.from({ length: x }, () => {
-    const randomValue = Math.floor(Math.random() * 1000) + currentSecond;
-    return (randomValue % y) + 1;
-  });
+  // Generate random dice rolls
+  const rolls = Array.from({ length: x }, () => Math.floor(Math.random() * y) + 1);
 
   // Calculate the sum
   const sum = rolls.reduce((acc, val) => acc + val, 0) + z;
@@ -73,10 +62,7 @@ export default function handler(req, res) {
   const title = `Rolling ${x}d${y}${z !== 0 ? `+${z}` : ''}`;
   const description = `Result: ${sum} (Rolls: [${rolls.join(", ")}] + ${z})`;
 
-  // Set comprehensive no-cache headers
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
-  res.setHeader("Expires", "-1");
-  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate"); // Disable caching for this response
   res.setHeader("Content-Type", "text/html");
   res.status(200).send(`
     <!DOCTYPE html>
@@ -84,9 +70,6 @@ export default function handler(req, res) {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-        <meta http-equiv="Pragma" content="no-cache">
-        <meta http-equiv="Expires" content="0">
         <meta property="og:title" content="${title}">
         <meta property="og:description" content="${description}">
         <meta property="og:type" content="website">
@@ -119,18 +102,12 @@ export default function handler(req, res) {
             color: #666;
             font-size: 1.2rem;
           }
-          .time {
-            color: #999;
-            font-size: 0.9rem;
-            margin-top: 1rem;
-          }
         </style>
       </head>
       <body>
         <div class="result">
           <h1>${sum}</h1>
           <div class="formula">[${rolls.join(", ")}] + ${z}</div>
-          <div class="time">Generated at: ${new Date().toLocaleTimeString()}</div>
         </div>
       </body>
     </html>
