@@ -59,8 +59,7 @@ export default function handler(req, res) {
   const sum = rolls.reduce((acc, val) => acc + val, 0) + z;
 
   // Create a descriptive title and description
-  const title = `Rolling ${x}d${y}${z !== 0 ? `+${z}` : ''}`;
-  const description = `🎲: ${sum} (Rolls: [${rolls.join(", ")}] + ${z})`;
+  const description = `🎲: ${sum} ( = [${rolls.join(", ")}] + ${z})`;
 
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate"); // Disable caching for this response
   res.setHeader("Content-Type", "text/html");
@@ -70,13 +69,13 @@ export default function handler(req, res) {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta property="og:title" content="${title}">
+        <meta property="og:title" content="${description}">
         <meta property="og:description" content="${description}">
         <meta property="og:type" content="website">
         <meta name="twitter:card" content="summary">
-        <meta name="twitter:title" content="${title}">
+        <meta name="twitter:title" content="${description}">
         <meta name="twitter:description" content="${description}">
-        <title>${title}</title>
+        <title>${description}</title>
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -106,8 +105,8 @@ export default function handler(req, res) {
       </head>
       <body>
         <div class="result">
-          <h1>${sum}</h1>
-          <div class="formula">[${rolls.join(", ")}] + ${z}</div>
+          <h1>🎲: ${sum}</h1>
+          <div class="formula"> = [${rolls.join(", ")}] + ${z}</div>
         </div>
       </body>
     </html>
