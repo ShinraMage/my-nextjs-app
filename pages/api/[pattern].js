@@ -1,8 +1,8 @@
 export default function handler(req, res) {
   const { pattern } = req.query;
   
-  // Match the pattern for "xdy+z" or "dy+z" or "dy-z"
-  const match = pattern.match(/^(\d*)d(\d+)([-+]\d*\.?\d+)?$/); // Optional x, required y, optional +z or -z part
+  // Match the pattern for "xdy+z", "dy+z", or "dy-z" with optional tail characters after the dice part
+  const match = pattern.match(/^(\d*)d(\d+)([-+]\d*\.?\d+)?([a-zA-Z0-9-_]*)$/); // Match optional tail characters at the end
   
   if (!match) {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate"); // Disable caching for invalid input
